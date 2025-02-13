@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
     });
 
     function createRoom(data, name, cb) {
-        for (let i = 1; true; i++) {
+        for (let i = Math.floor(Math.random() * 1000); true; i++) {
             if (rooms.hasOwnProperty(i)) {
                 continue;
             }
