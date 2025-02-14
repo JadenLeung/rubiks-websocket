@@ -13,6 +13,10 @@ const io = new Server(server, {
    // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
+app.get("/", (req, res) => {
+                  res.json({ message: "Hello World" });
+});
+
 app.use(cors());
 app.use(express.static("public"));
 
