@@ -7,10 +7,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: { 
-        origin: ["http://localhost:8000", "https://virtual-cube.net"],
+        origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
         methods: ["GET", "POST"]
     },
-    transports: ["polling"] // Forces long polling instead of WebSockets
+   // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
 app.use(cors());
@@ -252,6 +252,5 @@ io.on("connection", (socket) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-
