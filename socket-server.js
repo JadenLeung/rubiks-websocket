@@ -10,7 +10,7 @@ const io = new Server(server, {
         origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
         methods: ["GET", "POST"]
     },
-   // transports: ["polling"] // Forces long polling instead of WebSockets
+   transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
 app.get("/", (req, res) => {
@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
     socket.on("restart-game", (room, data, cb) => {
         room = String(room);
         if (!rooms.hasOwnProperty(room)) {
-            createRoom(data.data, data.names[socket.id], cb)
+            createRoom(data.data, data.names[socket.id], room)
         } else {
             console.log("attempting to join room already there restart")
             joinRoom(room, data.names[socket.id], cb);
@@ -36,14 +36,19 @@ io.on("connection", (socket) => {
     })
 
     socket.on("create-room", (data, name, cb) => {
-        createRoom(data, name, cb);
+        createRoom(data, name, false);
     });
 
-    function createRoom(data, name, cb) {
+    function createRoom(data, name, setroom) {
+
         for (let i = Math.floor(Math.random() * 1000); true; i++) {
+            if (setroom) {
+                i = setroom;
+            }
             if (rooms.hasOwnProperty(i)) {
                 continue;
             }
+            data.leader = socket.id;
             rooms[i] = { userids: [socket.id], names: {}, data: data, stage: "lobby", round: -1, solved: {}, 
                         winners: {}, solvedarr : [], progress: {}, times: {}};
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
@@ -256,5 +261,5 @@ io.on("connection", (socket) => {
     }
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
