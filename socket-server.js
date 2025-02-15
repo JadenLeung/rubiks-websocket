@@ -55,6 +55,7 @@ io.on("connection", (socket) => {
             rooms[i].names[socket.id] = name;
             socket.join(String(i));
             io.to(String(i)).emit("refresh_rooms", rooms[i], i);
+            socket.emit("joined_room", i, socket.id, name);
             break;
         }
     }
@@ -77,6 +78,7 @@ io.on("connection", (socket) => {
                 console.log("Current rooms after joining", io.sockets.adapter.rooms, socket.id);
                 // Emit refresh_rooms to ALL users in the room
                 io.to(room).emit("refresh_rooms", rooms[room], room);
+                io.to(room).emit("joined_room", room, socket.id, name);
                 console.log(`${socket.id} joined room ${room}. Updated Data: ${JSON.stringify(rooms)}`);
             }
         } else {
@@ -136,6 +138,14 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("send-message", (message, room, username) => {
+        if (rooms.hasOwnProperty(room) && rooms[room].userids.length > 1) {
+            io.to(room).emit("sending-message", message, socket.id, {[socket.id] : username, ...rooms[room].names});
+        } else {
+            socket.emit("sending-message", message, socket.id, {[socket.id] : username});
+        }
+    })
+
     function updateTimes(room) {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage != "lobby") {
@@ -185,6 +195,7 @@ io.on("connection", (socket) => {
             if (rooms[room].userids && rooms[room].userids.includes(player)) {
                 for (let i = 0; rooms[room] && i < rooms[room].userids.length; ++i) {
                     if (player == rooms[room].userids[i]) {
+                        io.to(room).emit("left_room", room, socket.id, rooms[room].names);
                         rooms[room].userids.splice(i, 1);
                         if (rooms[room].userids.length == 0) {
                             delete rooms[room];
