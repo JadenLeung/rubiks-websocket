@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World" });
+                  res.json({ message: "Hello World 2" });
 });
 
 app.use(cors());
@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
             }
             data.leader = socket.id;
             rooms[i] = { userids: [socket.id], names: {}, data: data, stage: "lobby", round: -1, solved: {}, 
-                        winners: {}, solvedarr : [], progress: {}, times: {}};
+                        winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
             rooms[i].names[socket.id] = name;
             socket.join(String(i));
@@ -124,6 +124,7 @@ io.on("connection", (socket) => {
             rooms[room].solved = {};
             rooms[room].progress = {};
             rooms[room].times = {};
+            rooms[room].screenshots = {};
             io.to(room).emit("next-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
             console.log(getShuffle(rooms[room].data.dims[rooms[room].round]));
         }
@@ -138,12 +139,19 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("send-message", (message, room, username) => {
+    socket.on("send-message", (message, room, username, image = false) => {
         if (rooms.hasOwnProperty(room) && rooms[room].userids.length > 1) {
-            io.to(room).emit("sending-message", message, socket.id, {[socket.id] : username, ...rooms[room].names});
+            if (image == true)
+                console.log("sending image");
+            io.to(room).emit("sending-message", message, socket.id, {[socket.id] : username, ...rooms[room].names}, image);
         } else {
-            socket.emit("sending-message", message, socket.id, {[socket.id] : username});
+            console.log("sending to one person");
+            socket.emit("sending-message", message, socket.id, {[socket.id] : username}, image);
         }
+    })
+
+    socket.on("send-screenshot", (screenshot, op) => {
+        io.to(op).emit("update-screenshot", screenshot);
     })
 
     function updateTimes(room) {
