@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 2" });
+                  res.json({ message: "Hello World 4" });
 });
 
 app.use(cors());
@@ -54,6 +54,7 @@ io.on("connection", (socket) => {
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
             rooms[i].names[socket.id] = name;
             socket.join(String(i));
+            io.emit("room_change", rooms);
             io.to(String(i)).emit("refresh_rooms", rooms[i], i);
             socket.emit("joined_room", i, socket.id, name);
             break;
@@ -62,6 +63,10 @@ io.on("connection", (socket) => {
     socket.on("join-room", (room, name, failedcb) => {
         joinRoom(room, name, failedcb);
     });
+
+    socket.on("get-rooms", () => {
+        io.emit("room_change", rooms);
+    })
 
     function joinRoom(room, name, failedcb) {
         room = String(room);
@@ -76,7 +81,7 @@ io.on("connection", (socket) => {
                 rooms[room].names[socket.id] = name;
                 socket.join(String(room));
                 console.log("Current rooms after joining", io.sockets.adapter.rooms, socket.id);
-                // Emit refresh_rooms to ALL users in the room
+                io.emit("room_change", rooms);
                 io.to(room).emit("refresh_rooms", rooms[room], room);
                 io.to(room).emit("joined_room", room, socket.id, name);
                 console.log(`${socket.id} joined room ${room}. Updated Data: ${JSON.stringify(rooms)}`);
@@ -100,6 +105,7 @@ io.on("connection", (socket) => {
            rooms[room].stage = "ingame";
            rooms[room].round = 0;
            io.to(room).emit("started-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
+           io.emit("room_change", rooms);
         }
     });
     socket.on("solved", (room, time) => {
@@ -207,6 +213,7 @@ io.on("connection", (socket) => {
                         rooms[room].userids.splice(i, 1);
                         if (rooms[room].userids.length == 0) {
                             delete rooms[room];
+                            io.emit("room_change", rooms);
                             return;
                         }
                         if (rooms[room].data.leader == player) {
@@ -219,6 +226,7 @@ io.on("connection", (socket) => {
                         } else if (rooms[room].stage == "results") {
                             io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
                         }
+                        io.emit("room_change", rooms);
                         console.log(`${player} is leaving the room ${room}. Data is ${JSON.stringify(rooms)}`);
                     }
                 }
@@ -266,9 +274,10 @@ io.on("connection", (socket) => {
 
     function getShuffle(cubearr) {
         const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
-            "3x3x5" : "3x3x5", "1x4x4" : "3x3x2", "1x2x3" : "Double Turns", "3x3" : "Normal", "2x2": "Normal",
-            "4x4" : "Normal", "1x3x3": "Normal"};
-        const shufflenum = {"2x2x4" : 45, "3x3x5" : 45, "3x3x4" : 30, "1x4x4" : 30};
+            "3x3x5" : "3x3x5", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "3x3" : "Normal", "2x2": "Normal",
+            "4x4" : "Normal", "5x5" : "Normal", "1x3x3": "Normal", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2",
+            "Xmas 3x3" : "Normal", "Xmas 2x2" : "Normal"};
+        const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30};
         if (cubearr.length == 1 || typemap[cubearr[0]] == typemap[cubearr[1]]) {
             if (typemap[cubearr[0]] == typemap[cubearr[1]]) {
                 return shuffleCube(typemap[cubearr[0]], Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18));
