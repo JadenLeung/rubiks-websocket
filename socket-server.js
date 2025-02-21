@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 5" });
+                  res.json({ message: "Hello World 7" });
 });
 
 app.use(cors());
@@ -147,7 +147,7 @@ io.on("connection", (socket) => {
         if (rooms.hasOwnProperty(room) && rooms[room].stage == "ingame") {
             rooms[room].progress[socket.id] = progress;
             rooms[room].times[socket.id] = time;
-            if (rooms[room].data.type == "teamblind" && socket.id == rooms[room].data.blinded) {
+            if (rooms[room].data.type == "teamblind" && (socket.id == rooms[room].data.blinded || rooms[room].userids.length == 1)) {
                 rooms[room].data.time = time;
                 rooms[room].data.posid = posid;
             }
@@ -195,7 +195,8 @@ io.on("connection", (socket) => {
                     }
                 });
                 rooms[room].solvedarr[rooms[room].round] = rooms[room].solved;
-                rooms[room].data.blinded = "";
+                if (rooms[room].data && rooms[room].data.blinded)
+                    rooms[room].data.blinded = "";
                 console.log(`WINNER: ${JSON.stringify(rooms[room].winners)}`);
                 io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
                 if (rooms[room].round + 1 == rooms[room].data.dims.length) {
@@ -209,12 +210,14 @@ io.on("connection", (socket) => {
         }
     }
     socket.on("giveup_blind", room => {
-        rooms[room].data.blinded = "";
-        rooms[room].stage = "results";
-        rooms[room].data.time = "DNF";
-        io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
-        delete rooms[room];
-        io.in(room).socketsLeave(room);
+        if (rooms.hasOwnProperty(room) && rooms[room].stage != "lobby") {
+            rooms[room].data.blinded = "";
+            rooms[room].stage = "results";
+            rooms[room].data.time = "DNF";
+            io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
+            delete rooms[room];
+            io.in(room).socketsLeave(room);
+        }
     })
     socket.on("switch_blindfold", (room, blinded) => {
         rooms[room].data.blinded = blinded;
