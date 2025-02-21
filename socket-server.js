@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 4" });
+                  res.json({ message: "Hello World 5" });
 });
 
 app.use(cors());
@@ -102,10 +102,16 @@ io.on("connection", (socket) => {
     socket.on("start-match", (room) => {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage == "lobby") {
-           rooms[room].stage = "ingame";
-           rooms[room].round = 0;
-           io.to(room).emit("started-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
-           io.emit("room_change", rooms);
+            rooms[room].stage = "ingame";
+            rooms[room].round = 0;
+            if (rooms[room].data.type == "teamblind") {
+                console.log("Setting match")
+                rooms[room].data.blinded = rooms[room].userids[1];
+                rooms[room].data.time = 0;
+                rooms[room].data.startblind = 0;
+            }
+            io.to(room).emit("started-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
+            io.emit("room_change", rooms);
         }
     });
     socket.on("solved", (room, time) => {
@@ -136,12 +142,16 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("progress-update", (room, progress, time) => {
+    socket.on("progress-update", (room, progress, time, posid) => {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage == "ingame") {
             rooms[room].progress[socket.id] = progress;
             rooms[room].times[socket.id] = time;
-            io.to(room).emit("someone-solved", rooms[room]);
+            if (rooms[room].data.type == "teamblind" && socket.id == rooms[room].data.blinded) {
+                rooms[room].data.time = time;
+                rooms[room].data.posid = posid;
+            }
+            io.to(room).emit("update-data", rooms[room]);
         }
     });
 
@@ -163,7 +173,6 @@ io.on("connection", (socket) => {
     function updateTimes(room) {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage != "lobby") {
-            console.log(`Solved ${JSON.stringify(rooms[room])}, ${JSON.stringify(rooms[room].solved)} / ${rooms[room].userids.length}`)
             if (Object.keys(rooms[room].solved).length == rooms[room].userids.length) {
                 let winningtime = "DNF";
                 for (let id in rooms[room].solved) {
@@ -186,6 +195,7 @@ io.on("connection", (socket) => {
                     }
                 });
                 rooms[room].solvedarr[rooms[room].round] = rooms[room].solved;
+                rooms[room].data.blinded = "";
                 console.log(`WINNER: ${JSON.stringify(rooms[room].winners)}`);
                 io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
                 if (rooms[room].round + 1 == rooms[room].data.dims.length) {
@@ -194,10 +204,23 @@ io.on("connection", (socket) => {
                     console.log("DELETING ROOM");
                 }
             } else {
-                io.to(room).emit("someone-solved", rooms[room]);
+                io.to(room).emit("update-data", rooms[room]);
             }
         }
     }
+    socket.on("giveup_blind", room => {
+        rooms[room].data.blinded = "";
+        rooms[room].stage = "results";
+        rooms[room].data.time = "DNF";
+        io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
+        delete rooms[room];
+        io.in(room).socketsLeave(room);
+    })
+    socket.on("switch_blindfold", (room, blinded) => {
+        rooms[room].data.blinded = blinded;
+        rooms[room].data.startblind = rooms[room].data.time;
+        io.to(room).emit("switched-blindfold", rooms[room]);
+    })
     socket.on("disconnect", (reason) => {
         console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
         removePlayer(socket.id);
