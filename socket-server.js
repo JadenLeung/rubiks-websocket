@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 7" });
+                  res.json({ message: "Hello World 8" });
 });
 
 app.use(cors());
@@ -26,12 +26,14 @@ io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("restart-game", (room, data, cb) => {
-        room = String(room);
-        if (!rooms.hasOwnProperty(room)) {
-            createRoom(data.data, data.names[socket.id], room)
+        room = +room;
+        removePlayer(socket.id);
+        console.log(`Wanna join room ${+rooms + 1} bool ${!rooms.hasOwnProperty(room + 1)}`)
+        if (!rooms.hasOwnProperty(room + 1)) {
+            createRoom(data.data, data.names[socket.id], room + 1)
         } else {
             console.log("attempting to join room already there restart")
-            joinRoom(room, data.names[socket.id], cb);
+            joinRoom(room + 1, data.names[socket.id], cb);
         }
     })
 
@@ -199,11 +201,6 @@ io.on("connection", (socket) => {
                     rooms[room].data.blinded = "";
                 console.log(`WINNER: ${JSON.stringify(rooms[room].winners)}`);
                 io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
-                if (rooms[room].round + 1 == rooms[room].data.dims.length) {
-                    delete rooms[room];
-                    io.in(room).socketsLeave(room);
-                    console.log("DELETING ROOM");
-                }
             } else {
                 io.to(room).emit("update-data", rooms[room]);
             }
