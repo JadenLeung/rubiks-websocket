@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 8" });
+                  res.json({ message: "Hello World 9" });
 });
 
 app.use(cors());
@@ -76,7 +76,7 @@ io.on("connection", (socket) => {
         if (rooms.hasOwnProperty(room)) {
             if (rooms[room].stage != "lobby") {
                 failedcb("Game already started.");
-            } else if (rooms[room].data.type == "1v1" && rooms[room].userids.length >= 2) {
+            } else if (rooms[room].data.type != "group" && rooms[room].userids.length >= 2) {
                 failedcb("Maximum capacity exceeded");
             } else {
                 rooms[room].userids.push(socket.id);
