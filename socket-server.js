@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 9" });
+                  res.json({ message: "Hello World 10" });
 });
 
 app.use(cors());
@@ -220,6 +220,32 @@ io.on("connection", (socket) => {
         rooms[room].data.blinded = blinded;
         rooms[room].data.startblind = rooms[room].data.time;
         io.to(room).emit("switched-blindfold", rooms[room]);
+    });
+
+    socket.on("bot_connect", (id, DIM) => {
+        console.log("BOT_CONNECTED")
+        socket.join(id);
+        bot_shuffle(id, DIM)
+    })
+
+    socket.on("bot_shuffle", (id, DIM) => {
+        bot_shuffle(id, DIM)
+    })
+
+    function bot_shuffle(id, DIM) {
+        const DIMOBJ = {50: "3x3", 100: "2x2"}
+        const SHUFFLEOBJ = {50: 18, 100: 10}
+        const scramble = shuffleCube(DIMOBJ[DIM], SHUFFLEOBJ[DIM]);
+        io.to(id).emit("bot_connected", scramble);
+    }
+
+    socket.on("start_race", () => {
+        console.log("EMITTING", socket.id);
+        io.to(socket.id).emit("started_race");
+    });
+
+    socket.on("race_win", (id, winner) => {
+        io.to(id).emit("race_won", winner);
     })
     socket.on("disconnect", (reason) => {
         console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
