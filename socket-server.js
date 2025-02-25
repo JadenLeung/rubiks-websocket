@@ -235,7 +235,7 @@ io.on("connection", (socket) => {
     function bot_shuffle(id, DIM) {
         const DIMOBJ = {50: "3x3", 100: "2x2"}
         const SHUFFLEOBJ = {50: 18, 100: 10}
-        const scramble = shuffleCube(DIMOBJ[DIM], SHUFFLEOBJ[DIM]);
+        const scramble = shuffleCube(DIMOBJ[DIM], SHUFFLEOBJ[DIM], true);
         io.to(id).emit("bot_connected", scramble);
     }
 
@@ -284,10 +284,13 @@ io.on("connection", (socket) => {
         })
     }
 
-    function shuffleCube(type, shufflenum) { 
+    function shuffleCube(type, shufflenum, nowide = false) { 
         let arr = [];
         console.log("shuffling");
         let possible = ["R", "L", "U", "D", "B", "F", "Rw", "Lw", "Uw", "Dw", "Bw", "Fw"];
+        if (nowide) {
+            possible = ["R", "L", "U", "D", "B", "F"];
+        }
         let bad5 = ['L','R','F','B','S','M','l','r','f','b'];
         let doubly = false;
         if(type == "Middle Slices")
