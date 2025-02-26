@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 10" });
+                  res.json({ message: "Hello World 11" });
 });
 
 app.use(cors());
@@ -62,6 +62,13 @@ io.on("connection", (socket) => {
             break;
         }
     }
+
+    socket.on("edit-room", (room, data) => {
+        rooms[room].data = data;
+        io.emit("room_change", rooms);
+        io.to(String(room)).emit("refresh_rooms", rooms[room], room);
+    })
+    
     socket.on("join-room", (room, name, failedcb) => {
         joinRoom(room, name, failedcb);
     });
