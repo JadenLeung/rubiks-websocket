@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 11" });
+                  res.json({ message: "Hello World 12" });
 });
 
 app.use(cors());
@@ -56,6 +56,7 @@ io.on("connection", (socket) => {
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
             rooms[i].names[socket.id] = name;
             socket.join(String(i));
+            console.log("HEREERE");
             io.emit("room_change", rooms);
             io.to(String(i)).emit("refresh_rooms", rooms[i], i);
             socket.emit("joined_room", i, socket.id, name);
@@ -114,8 +115,12 @@ io.on("connection", (socket) => {
             rooms[room].stage = "ingame";
             rooms[room].round = 0;
             if (rooms[room].data.type == "teamblind") {
-                console.log("Setting match")
-                rooms[room].data.blinded = rooms[room].userids[1];
+                console.log("Setting match");
+                if (rooms[room].data.startblind == 0 || rooms[room].userids.length == 1) {
+                    rooms[room].data.blinded = rooms[room].userids[0];
+                } else {
+                    rooms[room].data.blinded = rooms[room].userids[1];
+                }
                 rooms[room].data.time = 0;
                 rooms[room].data.startblind = 0;
             }
