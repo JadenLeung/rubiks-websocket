@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 12" });
+                  res.json({ message: "Hello World 14" });
 });
 
 app.use(cors());
@@ -124,7 +124,8 @@ io.on("connection", (socket) => {
                 rooms[room].data.time = 0;
                 rooms[room].data.startblind = 0;
             }
-            io.to(room).emit("started-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
+            io.to(room).emit("started-match", rooms[room], 
+                getShuffle(rooms[room].data.dims[rooms[room].round], rooms[room].data.shufflearr[rooms[room].round] ?? false));
             io.emit("room_change", rooms);
         }
     });
@@ -151,8 +152,8 @@ io.on("connection", (socket) => {
             rooms[room].progress = {};
             rooms[room].times = {};
             rooms[room].screenshots = {};
-            io.to(room).emit("next-match", rooms[room], getShuffle(rooms[room].data.dims[rooms[room].round]));
-            console.log(getShuffle(rooms[room].data.dims[rooms[room].round]));
+            io.to(room).emit("next-match", rooms[room], 
+                getShuffle(rooms[room].data.dims[rooms[room].round], rooms[room].data.shufflearr[rooms[room].round] ?? false));
         }
     });
 
@@ -336,17 +337,30 @@ io.on("connection", (socket) => {
         return total;
     }
 
-    function getShuffle(cubearr) {
+    function getShuffle(cubearr, shufflearr = false) {
         const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
             "3x3x5" : "3x3x5", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "3x3" : "Normal", "2x2": "Normal",
             "4x4" : "Normal", "5x5" : "Normal", "1x3x3": "Normal", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2",
             "Xmas 3x3" : "Normal", "Xmas 2x2" : "Normal"};
         const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30};
-        if (cubearr.length == 1 || typemap[cubearr[0]] == typemap[cubearr[1]]) {
-            if (typemap[cubearr[0]] == typemap[cubearr[1]]) {
-                return shuffleCube(typemap[cubearr[0]], Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18));
+        const shufflemap = {"Normal" : "Normal", "3x3x2" : "3x3x2", "Double" : "Double Turns", "Gear" : "Gearcube"};
+        let shufflea = typemap[cubearr[0]];
+        let shuffleb = typemap[cubearr[1]];
+        console.log("BEFORE", shufflea, shuffleb, shufflearr);
+        if (shufflearr) {
+            if (cubearr.length == 1) {
+                shufflea = shufflearr == "Default" ? shufflea : shufflemap[shufflearr];
+            } else {
+                shufflea = shufflearr[0] == "Default" ? shufflea : shufflemap[shufflearr[0]];
+                shuffleb = shufflearr[1] == "Default" ? shuffleb : shufflemap[shufflearr[1]];
             }
-            return shuffleCube(typemap[cubearr[0]], shufflenum[cubearr[0]] ?? 18);
+        }
+        console.log("AFTER", shufflea, shuffleb);
+        if (cubearr.length == 1 || shufflea == shuffleb) {
+            if (shufflea == shuffleb) {
+                return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18));
+            }
+            return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18);
         } else {
             return false;
         }
