@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 14" });
+                  res.json({ message: "Hello World 17" });
 });
 
 app.use(cors());
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
             console.log("HEREERE");
             io.emit("room_change", rooms);
             io.to(String(i)).emit("refresh_rooms", rooms[i], i);
-            socket.emit("joined_room", i, socket.id, name);
+            socket.emit("joined_room", i, socket.id, name, rooms[i].stage);
             break;
         }
     }
@@ -81,8 +81,9 @@ io.on("connection", (socket) => {
     function joinRoom(room, name, failedcb) {
         room = String(room);
         console.log("Attempting to join room, data is ", rooms[room])
+        let late_join = rooms[room] && rooms[room].data && rooms[room].data.type && rooms[room].data.type != "teamblind";
         if (rooms.hasOwnProperty(room)) {
-            if (rooms[room].stage != "lobby") {
+            if (rooms[room].stage != "lobby" && !late_join) {
                 failedcb("Game already started.");
             } else if (rooms[room].data.type != "group" && rooms[room].userids.length >= 2) {
                 failedcb("Maximum capacity exceeded");
@@ -92,8 +93,12 @@ io.on("connection", (socket) => {
                 socket.join(String(room));
                 console.log("Current rooms after joining", io.sockets.adapter.rooms, socket.id);
                 io.emit("room_change", rooms);
-                io.to(room).emit("refresh_rooms", rooms[room], room);
-                io.to(room).emit("joined_room", room, socket.id, name);
+                if (rooms[room].stage == "lobby") {
+                    io.to(room).emit("refresh_rooms", rooms[room], room);
+                } else if (late_join) {
+                    io.to(socket.id).emit("joined_late", rooms[room], room);
+                }
+                io.to(room).emit("joined_room", room, socket.id, name, rooms[room].stage);
                 console.log(`${socket.id} joined room ${room}. Updated Data: ${JSON.stringify(rooms)}`);
             }
         } else {
@@ -131,9 +136,10 @@ io.on("connection", (socket) => {
     });
     socket.on("solved", (room, time) => {
         room = String(room);
-        console.log("Someone emitted solved",  rooms[room].stage);
+        console.log("Someone emitted solved", rooms[room].stage, time, socket.id);
         if (rooms.hasOwnProperty(room) && rooms[room].stage == "ingame") {
             rooms[room].solved[socket.id] = time;
+            console.log("Beforer append, ", rooms, rooms[room], rooms[room].solved,rooms[room].solved[socket.id]);
             updateTimes(room);
             if (rooms.hasOwnProperty(room) && rooms[room].stage == "ingame") {
                 rooms[room].solvedarr[rooms[room].round] = rooms[room].solved;
@@ -272,6 +278,10 @@ io.on("connection", (socket) => {
                 for (let i = 0; rooms[room] && i < rooms[room].userids.length; ++i) {
                     if (player == rooms[room].userids[i]) {
                         io.to(room).emit("left_room", room, socket.id, rooms[room].names);
+                        if (rooms[room].solved && rooms[room].solved[player]) {
+                            delete rooms[room].solved[player];
+                            console.log("Deleting player from solved", rooms[room].solved)
+                        }
                         rooms[room].userids.splice(i, 1);
                         if (rooms[room].userids.length == 0) {
                             delete rooms[room];
@@ -318,19 +328,25 @@ io.on("connection", (socket) => {
         {
             let rnd = possible[Math.floor(Math.random() * possible.length)];
             let rnd2 = Math.random();
-            if(doubly || ((type == "3x3x2" || (type == "2x2x4" && i < 15)) && bad5.includes(rnd[0])))
-            {
+            if(type == "Gearcube") {
+                rnd = rnd.replace(/w/g, '');
+				if(rnd2 < 0.5){
+					arr.push((rnd + "w"));
+					arr.push(rnd);
+					total += rnd + "w " + rnd + " ";
+				}
+				else{
+					arr.push((rnd + "w'"));
+					arr.push((rnd+"'"));
+					total += rnd + "w' " + rnd + "' ";
+				}
+            } else if(doubly || ((type == "3x3x2" || (type == "2x2x4" && i < 15)) && bad5.includes(rnd[0]))) {
                 total += rnd + "2 ";
-            }
-            else if(rnd2 < 0.25)
-            {
+            } else if(rnd2 < 0.25) {
                 total += rnd + " ";
-            }
-            else if(rnd2 < 0.75)
-            {
+            } else if(rnd2 < 0.75) {
                 total += rnd + "2 ";
-            }else
-            {
+            } else {
                 total += rnd + "' ";
             }
         }
@@ -339,20 +355,18 @@ io.on("connection", (socket) => {
 
     function getShuffle(cubearr, shufflearr = false) {
         const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
-            "3x3x5" : "3x3x5", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "3x3" : "Normal", "2x2": "Normal",
-            "4x4" : "Normal", "5x5" : "Normal", "1x3x3": "Normal", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2",
-            "Xmas 3x3" : "Normal", "Xmas 2x2" : "Normal"};
-        const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30};
-        const shufflemap = {"Normal" : "Normal", "3x3x2" : "3x3x2", "Double" : "Double Turns", "Gear" : "Gearcube"};
-        let shufflea = typemap[cubearr[0]];
-        let shuffleb = typemap[cubearr[1]];
+            "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2",
+            "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2"};
+        const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30};
+        let shufflea = typemap[cubearr[0]] ?? "Normal";
+        let shuffleb = typemap[cubearr[1]] ?? "Normal";
         console.log("BEFORE", shufflea, shuffleb, shufflearr);
         if (shufflearr) {
             if (cubearr.length == 1) {
-                shufflea = shufflearr == "Default" ? shufflea : shufflemap[shufflearr];
+                shufflea = shufflearr == "Default" ? shufflea : shufflearr;
             } else {
-                shufflea = shufflearr[0] == "Default" ? shufflea : shufflemap[shufflearr[0]];
-                shuffleb = shufflearr[1] == "Default" ? shuffleb : shufflemap[shufflearr[1]];
+                shufflea = shufflearr[0] == "Default" ? shufflea : shufflearr[0];
+                shuffleb = shufflearr[1] == "Default" ? shuffleb : shufflearr[1];
             }
         }
         console.log("AFTER", shufflea, shuffleb);
