@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 18" });
+                  res.json({ message: "Hello World 20" });
 });
 
 app.use(cors());
@@ -54,6 +54,7 @@ io.on("connection", (socket) => {
             rooms[i] = { userids: [socket.id], names: {}, data: data, stage: "lobby", round: -1, solved: {}, 
                         winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
+            name = getName(name, rooms[i].names);
             rooms[i].names[socket.id] = name;
             socket.join(String(i));
             console.log("HEREERE");
@@ -78,6 +79,15 @@ io.on("connection", (socket) => {
         io.emit("room_change", rooms);
     })
 
+    function getName(name, arr) {
+        console.log("Getting", arr)
+        if (name == "signedout") {
+            let numout = Object.keys(arr).filter(name => arr[name].includes("player")).length;
+            return `player${numout + 1}`;
+        }
+        return name;
+    }
+
     function joinRoom(room, name, failedcb) {
         room = String(room);
         console.log("Attempting to join room, data is ", rooms[room])
@@ -89,6 +99,7 @@ io.on("connection", (socket) => {
                 failedcb("Maximum capacity exceeded");
             } else {
                 rooms[room].userids.push(socket.id);
+                name = getName(name, rooms[room].names)
                 rooms[room].names[socket.id] = name;
                 socket.join(String(room));
                 console.log("Current rooms after joining", io.sockets.adapter.rooms, socket.id);
