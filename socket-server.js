@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 17" });
+                  res.json({ message: "Hello World 18" });
 });
 
 app.use(cors());
@@ -318,6 +318,12 @@ io.on("connection", (socket) => {
         let doubly = false;
         if(type == "Middle Slices")
             possible = ["E", "M", "S"];
+        else if (type == "MS") 
+            possible = ["M", "S"];
+        else if (type == "Cube Bandage") 
+            possible = ["B", "R", "D"];
+        else if (type == "Slice Bandage") 
+            possible = ["B", "E", "D"];
         else if(type == "Double Turns")
             doubly = true;
 
@@ -356,8 +362,11 @@ io.on("connection", (socket) => {
     function getShuffle(cubearr, shufflearr = false) {
         const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
             "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2",
-            "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2"};
-        const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30};
+            "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2", "Snake Eyes": "MS", "Cube Bandage" : "Cube Bandage",
+            "Slice Bandage" : "Slice Bandage"};
+        const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30,
+            "Earth Cube" : 30, "4x4 Plus Cube" : 30
+        };
         let shufflea = typemap[cubearr[0]] ?? "Normal";
         let shuffleb = typemap[cubearr[1]] ?? "Normal";
         console.log("BEFORE", shufflea, shuffleb, shufflearr);
