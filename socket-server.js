@@ -14,7 +14,7 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 20" });
+                  res.json({ message: "Hello World 21" });
 });
 
 app.use(cors());
@@ -97,7 +97,7 @@ io.on("connection", (socket) => {
                 failedcb("Game already started.");
             } else if (rooms[room].data.type != "group" && rooms[room].userids.length >= 2) {
                 failedcb("Maximum capacity exceeded");
-            } else {
+            } else if (!rooms[room].userids.includes(socket.id)) {
                 rooms[room].userids.push(socket.id);
                 name = getName(name, rooms[room].names)
                 rooms[room].names[socket.id] = name;
@@ -280,6 +280,10 @@ io.on("connection", (socket) => {
     socket.on("disconnect", (reason) => {
         console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
         removePlayer(socket.id);
+        console.log(io.engine.clientsCount)
+        if (io.engine.clientsCount == 0) {
+            rooms = {};
+        }
        
     });
 
