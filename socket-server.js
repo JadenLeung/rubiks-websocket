@@ -1,16 +1,29 @@
 const express = require("express");
 const http = require("http");
+const https = require('https');  // Add this line
 const { Server } = require("socket.io");
 const cors = require("cors");
-
+const fs = require("fs");
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
+
+
+app.use(express.static("public"));
+
+// HTTPS Configuration
+const options = {
+    key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
+};
+
+// Create HTTPS server
+const httpsServer = https.createServer(options, app);
+const io = new Server(httpsServer, {
     cors: { 
         origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
         methods: ["GET", "POST"]
     },
-   transports: ["polling"] // Forces long polling instead of WebSockets
+  // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
 app.get("/", (req, res) => {
@@ -351,16 +364,16 @@ io.on("connection", (socket) => {
             let rnd2 = Math.random();
             if(type == "Gearcube") {
                 rnd = rnd.replace(/w/g, '');
-				if(rnd2 < 0.5){
-					arr.push((rnd + "w"));
-					arr.push(rnd);
-					total += rnd + "w " + rnd + " ";
-				}
-				else{
-					arr.push((rnd + "w'"));
-					arr.push((rnd+"'"));
-					total += rnd + "w' " + rnd + "' ";
-				}
+                                if(rnd2 < 0.5){
+                                        arr.push((rnd + "w"));
+                                        arr.push(rnd);
+                                        total += rnd + "w " + rnd + " ";
+                                }
+                                else{
+                                        arr.push((rnd + "w'"));
+                                        arr.push((rnd+"'"));
+                                        total += rnd + "w' " + rnd + "' ";
+                                }
             } else if(doubly || ((type == "3x3x2" || (type == "2x2x4" && i < 15)) && bad5.includes(rnd[0]))) {
                 total += rnd + "2 ";
             } else if(rnd2 < 0.25) {
@@ -406,4 +419,8 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3003;
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+// Start HTTPS server (which includes Socket.IO)
+httpsServer.listen(3003, () => {
+    console.log('HTTPS server with Socket.IO running on port 3003');
+});
