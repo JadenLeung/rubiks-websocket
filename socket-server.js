@@ -8,17 +8,21 @@ const app = express();
 const server = http.createServer(app);
 
 
-app.use(express.static("public"));
+// app.use(express.static("public"));
+
+dev = true;
 
 // HTTPS Configuration
-const options = {
-    key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
-};
+if (!dev) {
+    var options = {
+        key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
+        cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
+    };
+    var httpsServer = https.createServer(options, app);
+}
 
 // Create HTTPS server
-const httpsServer = https.createServer(options, app);
-const io = new Server(httpsServer, {
+const io = new Server(dev ? server : httpsServer, {
     cors: { 
         origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
         methods: ["GET", "POST"]
@@ -420,7 +424,11 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3003;
 
-// Start HTTPS server (which includes Socket.IO)
-httpsServer.listen(3003, () => {
-    console.log('HTTPS server with Socket.IO running on port 3003');
-});
+if (!dev) {
+    // Start HTTPS server (which includes Socket.IO)
+    httpsServer.listen(3003, () => {
+        console.log('HTTPS server with Socket.IO running on port 3003');
+    });
+} else {
+    server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+}
