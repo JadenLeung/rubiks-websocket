@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 // app.use(express.static("public"));
 
-dev = true;
+dev = false;
 
 // HTTPS Configuration
 if (!dev) {
