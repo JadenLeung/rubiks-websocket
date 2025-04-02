@@ -7,9 +7,6 @@ const fs = require("fs");
 const app = express();
 const server = http.createServer(app);
 
-
-// app.use(express.static("public"));
-
 dev = false;
 
 // HTTPS Configuration
@@ -200,6 +197,7 @@ io.on("connection", (socket) => {
                 rooms[room].data.time = time;
                 rooms[room].data.posid = posid;
             }
+            console.log("emitting");
             io.to(room).emit("update-data", rooms[room]);
         }
     });
@@ -263,9 +261,9 @@ io.on("connection", (socket) => {
             io.in(room).socketsLeave(room);
         }
     })
-    socket.on("switch_blindfold", (room, blinded) => {
+    socket.on("switch_blindfold", (room, blinded, time) => {
         rooms[room].data.blinded = blinded;
-        rooms[room].data.startblind = rooms[room].data.time;
+        rooms[room].data.startblind = time;
         io.to(room).emit("switched-blindfold", rooms[room]);
     });
 
