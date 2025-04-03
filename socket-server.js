@@ -315,6 +315,10 @@ io.on("connection", (socket) => {
                             delete rooms[room].solved[player];
                             console.log("Deleting player from solved", rooms[room].solved)
                         }
+                        if (rooms[room].times && rooms[room].times[player]) {
+                            rooms[room].times[player] = "DNF";
+                            console.log("Setting player to DNF")
+                        }
                         rooms[room].userids.splice(i, 1);
                         if (rooms[room].userids.length == 0) {
                             delete rooms[room];
