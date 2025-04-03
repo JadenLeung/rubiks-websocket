@@ -235,15 +235,17 @@ io.on("connection", (socket) => {
                 }
                 rooms[room].stage = "results";
                 console.log(`WINNING TIME ${winningtime}`);
-                rooms[room].userids.forEach((id) => {
-                    if (rooms[room].solved[id] == winningtime) {
-                        if (!rooms[room].winners[id]) {
-                            rooms[room].winners[id] = 1;
-                        } else {
-                            rooms[room].winners[id]++;
+                if (winningtime != "DNF") {
+                    rooms[room].userids.forEach((id) => {
+                        if (rooms[room].solved[id] == winningtime) {
+                            if (!rooms[room].winners[id]) {
+                                rooms[room].winners[id] = 1;
+                            } else {
+                                rooms[room].winners[id]++;
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 rooms[room].solvedarr[rooms[room].round] = rooms[room].solved;
                 if (rooms[room].data && rooms[room].data.blinded)
                     rooms[room].data.blinded = "";
