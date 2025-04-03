@@ -94,8 +94,11 @@ io.on("connection", (socket) => {
     })
 
     function getName(name, arr) {
-        console.log("Getting", arr)
+        console.log("Getting", arr, name, socket.id, arr.hasOwnProperty(socket.id))
         if (name == "signedout") {
+            if (arr[socket.id]) {
+                return arr[socket.id];
+            }
             let numout = Object.keys(arr).filter(name => arr[name].includes("player")).length;
             return `player${numout + 1}`;
         }
