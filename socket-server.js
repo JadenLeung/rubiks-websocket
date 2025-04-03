@@ -66,7 +66,7 @@ io.on("connection", (socket) => {
             }
             data.leader = socket.id;
             rooms[i] = { userids: [socket.id], names: {}, data: data, stage: "lobby", round: -1, solved: {}, 
-                        winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
+                        allids: [socket.id], winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
             name = getName(name, rooms[i].names);
             rooms[i].names[socket.id] = name;
@@ -113,6 +113,9 @@ io.on("connection", (socket) => {
                 failedcb("Maximum capacity exceeded");
             } else if (!rooms[room].userids.includes(socket.id)) {
                 rooms[room].userids.push(socket.id);
+                if (!rooms[room].allids.includes(socket.id)) {
+                    rooms[room].allids.push(socket.id);
+                }
                 name = getName(name, rooms[room].names)
                 rooms[room].names[socket.id] = name;
                 socket.join(String(room));
