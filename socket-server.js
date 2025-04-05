@@ -270,9 +270,11 @@ io.on("connection", (socket) => {
         }
     })
     socket.on("switch_blindfold", (room, blinded, time) => {
-        rooms[room].data.blinded = blinded;
-        rooms[room].data.startblind = time;
-        io.to(room).emit("switched-blindfold", rooms[room]);
+        if (rooms[room] && rooms[room].data) {
+            rooms[room].data.blinded = blinded;
+            rooms[room].data.startblind = time;
+            io.to(room).emit("switched-blindfold", rooms[room]);
+        }
     });
 
     socket.on("bot_connect", (id, DIM) => {
