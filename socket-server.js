@@ -27,6 +27,10 @@ const io = new Server(dev ? server : httpsServer, {
   // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
+process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+});
+
 app.get("/", (req, res) => {
                   res.json({ message: "Hello World 21" });
 });
