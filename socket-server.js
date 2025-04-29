@@ -394,7 +394,7 @@ io.on("connection", (socket) => {
                                         arr.push((rnd+"'"));
                                         total += rnd + "w' " + rnd + "' ";
                                 }
-            } else if(doubly || ((type == "3x3x2" || (type == "2x2x4" && i < 15)) && bad5.includes(rnd[0]))) {
+            } else if(doubly || ((type == "3x3x2" || type == "2x3x4") && bad5.includes(rnd[0])) || ((type == "2x2x4" || type == "2x3x4") && i < 15)) {
                 total += rnd + "2 ";
             } else if(rnd2 < 0.25) {
                 total += rnd + " ";
@@ -409,7 +409,7 @@ io.on("connection", (socket) => {
 
     function getShuffle(cubearr, shufflearr = false) {
         const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
-            "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "3x3x2", "2x3x5" : "3x3x2",
+            "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "2x3x4", "2x3x5" : "2x3x4",
             "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2", "Snake Eyes": "MS", "Cube Bandage" : "Cube Bandage",
             "Slice Bandage" : "Slice Bandage"};
         const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "2x3x5" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30,
