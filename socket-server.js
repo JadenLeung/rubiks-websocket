@@ -223,9 +223,42 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("send-screenshot", (screenshot, op) => {
-        io.to(op).emit("update-screenshot", screenshot);
-    })
+    // Store the latest screenshot for each op
+const latestScreenshots = {};
+const sending = {};
+
+socket.on("send-screenshot", (screenshot, op) => {
+    latestScreenshots[op] = screenshot;
+
+    // If we’re not already sending one for this op, start
+    if (!sending[op]) {
+        sendNextScreenshot(op);
+    }
+});
+
+function sendNextScreenshot(op) {
+    const screenshot = latestScreenshots[op];
+    if (!screenshot) {
+        sending[op] = false;
+        return;
+    }
+
+    sending[op] = true;
+    latestScreenshots[op] = null; // Clear the buffer for this op
+
+    // Emit the latest screenshot
+    io.to(op).emit("update-screenshot", screenshot);
+
+    // Optional: delay to prevent floods
+    setImmediate(() => {
+        if (latestScreenshots[op]) {
+            sendNextScreenshot(op);
+        } else {
+            sending[op] = false;
+        }
+    });
+}
+
 
     function updateTimes(room) {
         room = String(room);
