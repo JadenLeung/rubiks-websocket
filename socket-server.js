@@ -411,10 +411,18 @@ function sendNextScreenshot(op) {
         let s = shufflenum;
 
         let total = "";
-        for(let i = 0; i < s; i++)
-        {
+        let prevrandom = "";
+        for (let i = 0; i < s; i++) {
             let rnd = possible[Math.floor(Math.random() * possible.length)];
             let rnd2 = Math.random();
+            const opposite = {
+                L: "R", R: "L", F: "B", B: "F", U: "D", D: "U"
+            };
+            if (rnd[0].toUpperCase() == prevrandom || rnd[0].toUpperCase() == opposite[prevrandom]) {
+                i--;
+                continue;
+            }
+            prevrandom = rnd[0].toUpperCase()
             if(type == "Gearcube") {
                 rnd = rnd.replace(/w/g, '');
                                 if(rnd2 < 0.5){
@@ -427,11 +435,11 @@ function sendNextScreenshot(op) {
                                         arr.push((rnd+"'"));
                                         total += rnd + "w' " + rnd + "' ";
                                 }
-            } else if(doubly || ((type == "3x3x2" || type == "2x3x4") && bad5.includes(rnd[0])) || ((type == "2x2x4" || type == "2x3x4") && i < 15)) {
+            } else if (doubly || ((type == "3x3x2" || type == "2x3x4") && bad5.includes(rnd[0])) || ((type == "2x2x4" || type == "2x3x4") && i < 15)) {
                 total += rnd + "2 ";
-            } else if(rnd2 < 0.25) {
+            } else if (rnd2 < 0.25) {
                 total += rnd + " ";
-            } else if(rnd2 < 0.75) {
+            } else if (rnd2 < 0.75) {
                 total += rnd + "2 ";
             } else {
                 total += rnd + "' ";
