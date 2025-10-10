@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-// const https = require('https');  // Add this line
+const https = require('https');  // Add this line
 const { Server } = require("socket.io");
 const cors = require("cors");
 const fs = require("fs");
@@ -10,24 +10,21 @@ const server = http.createServer(app);
 dev = false;
 
 // HTTPS Configuration
-// if (!dev) {
-//     var options = {
-//         key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
-//         cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
-//     };
-//     var httpsServer = https.createServer(options, app);
-// }
+if (!dev) {
+    var options = {
+        key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
+        cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
+    };
+    var httpsServer = https.createServer(options, app);
+}
 
 // Create HTTPS server
-const io = new Server(server, {
+const io = new Server(dev ? server : httpsServer, {
     cors: { 
-        origin: [
-            "http://localhost:8000", 
-            "https://virtual-cube.net", 
-            "https://jadenleung.github.io"
-        ],
+        origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
         methods: ["GET", "POST"]
     },
+  // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
 process.on("uncaughtException", (err) => {
@@ -484,8 +481,11 @@ function sendNextScreenshot(op) {
 
 const PORT = process.env.PORT || 3003;
 
-server.listen(PORT, dev ? () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-} : () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (!dev) {
+    // Start HTTPS server (which includes Socket.IO)
+    httpsServer.listen(3003, () => {
+        console.log('HTTPS server with Socket.IO running on port 3003');
+    });
+} else {
+    server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+}
