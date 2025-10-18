@@ -1,0 +1,26 @@
+const plls = {
+  "Aa": ["x' R2 D2 R' U' R D2 R' U R' x", "x R2 D2 R U R' D2 R U' R x'"],
+  "Ab": ["x R2 D2 R U R' D2 R U' R x'", "x' R2 D2 R' U' R D2 R' U R' x"],
+  "F": ["R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R", "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"],
+  "Ja": ["R' U L' U2 R U' R' U2 R L", "x R2 F R F' R U2 r' U r U2 x'"],
+  "Jb": ["R U R' F' R U R' U' R' F R2 U' R'", "R U R' F' R U R' U' R' F R2 U' R'"],
+  "Ra": ["R U' R' U' R U R D R' U' R D' R' U2 R'", "R U' R' U' R U R D R' U' R D' R' U2 R'"],
+  "Rb": ["R2 F R U R U' R' F' R U2 R' U2 R", "R2 F R U R U' R' F' R U2 R' U2 R"],
+  "T": ["R U R' U' R' F R2 U' R' U' R U R' F'", "R U R' U' R' F R2 U' R' U' R U R' F'"],
+  "Ga": ["R2 U R' U R' U' R U' R2 U' D R' U R D'", "R' U' R U D' R2 U R' U R U' R U' R2 D"],
+  "Gb": ["R' U' R U D' R2 U R' U R U' R U' R2 D", "R2 U R' U R' U' R U' R2 U' D R' U R D'"],
+  "Gc": ["R2 U' R U' R U R' U R2 U D' R U' R' D", "R U R' U' D R2 U' R U' R' U R' U R2 D'"],
+  "Gd": ["R U R' U' D R2 U' R U' R' U R' U R2 D'", "R2 U' R U' R U R' U R2 U D' R U' R' D"],
+  "E": ["x' R U' R' D R U R' D' R U R' D R U' R' D' x", "x' R U' R' D R U R' D' R U R' D R U' R' D' x"],
+  "Na": ["R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'", "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"],
+  "Nb": ["R' U R U' R' F' U' F R U R' F R' F' R U' R", "R' U R U' R' F' U' F R U R' F R' F' R U' R"],
+  "V": ["R U' R U R' D R D' R U' D R2 U R2 D' R2", "R U' R U R' D R D' R U' D R2 U R2 D' R2"],
+  "Y": ["F R U' R' U' R U R' F' R U R' U' R' F R F'", "F R U' R' U' R U R' F' R U R' U' R' F R F'"],
+  "H": ["M2 U M2 U2 M2 U M2", "M2 U M2 U2 M2 U M2"],
+  "Ua": ["M2 U M U2 M' U M2", "M2 U' M U2 M' U' M2"],
+  "Ub": ["M2 U' M U2 M' U' M2", "M2 U M U2 M' U M2"],
+  "Z": ["M' U' M2 U' M2 U' M' U2 M2", "M' U M2 U M2 U M' U2 M2"]
+}
+
+module.exports = { plls };
+  
