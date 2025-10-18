@@ -33,7 +33,7 @@ process.on("uncaughtException", (err) => {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 21" });
+                  res.json({ message: "Hello World 22" });
 });
 
 app.use(cors());
