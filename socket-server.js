@@ -22,7 +22,7 @@ if (!dev) {
 // Create HTTPS server
 const io = new Server(dev ? server : httpsServer, {
     cors: { 
-        origin: ["http://localhost:8000", "https://virtual-cube.net", "https://jadenleung.github.io"],
+        origin: ["*"],
         methods: ["GET", "POST"]
     },
   // transports: ["polling"] // Forces long polling instead of WebSockets
