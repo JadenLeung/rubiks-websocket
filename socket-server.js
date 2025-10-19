@@ -22,7 +22,7 @@ if (!dev) {
 // Create HTTPS server
 const io = new Server(dev ? server : httpsServer, {
     cors: { 
-        origin: ["*"],
+        origin: "*",
         methods: ["GET", "POST"]
     },
   // transports: ["polling"] // Forces long polling instead of WebSockets
@@ -33,7 +33,7 @@ process.on("uncaughtException", (err) => {
 });
 
 app.get("/", (req, res) => {
-                  res.json({ message: "Hello World 22" });
+                  res.json({ message: "Hello World 23" });
 });
 
 app.use(cors());
