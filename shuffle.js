@@ -76,6 +76,7 @@ function getShuffle(cubearr, shufflearr = false) {
     const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "2x3x5" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30,
         "Earth Cube" : 30, "4x4 Plus Cube" : 30
     };
+    const bigcubes = new Set(["4x4", "5x5", "1x4x4", "1x5x5", "2x2x4", "2x3x4", "2x3x5", "3x3x4", "3x3x5", "4x4 Plus Cube", "Earth Cube"]);
     let shufflea = typemap[cubearr[0]] ?? "Normal";
     let shuffleb = typemap[cubearr[1]] ?? "Normal";
     console.log("BEFORE", shufflea, shuffleb, shufflearr);
@@ -91,9 +92,10 @@ function getShuffle(cubearr, shufflearr = false) {
     console.log("HERERE", cubearr);
     if (cubearr.length == 1 || shufflea == shuffleb) {
         if (shufflea == shuffleb) {
-            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18), false, cubearr[0]);
+            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18), 
+                !bigcubes.has(cubearr[0]) && !bigcubes.has(cubearr[1]), cubearr[0]);
         }
-        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18, false, cubearr[0]);
+        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18, !bigcubes.has(cubearr[0]), cubearr[0]);
     } else {
         return false;
     }
