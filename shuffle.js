@@ -1,7 +1,7 @@
 const { plls } = require("./PLL.js");
 const { olls } = require("./OLL.js");
 
-function shuffleCube(type, shufflenum, nowide = false) { 
+function shuffleCube(type, shufflenum, nowide = false, name) { 
     let arr = [];
     console.log("shuffling");
     let possible = ["R", "L", "U", "D", "B", "F", "Rw", "Lw", "Uw", "Dw", "Bw", "Fw"];
@@ -14,16 +14,19 @@ function shuffleCube(type, shufflenum, nowide = false) {
         return randomLL();
     }
 
+    if (name == "Snake Eyes") 
+        possible = ["M", "S"];
+    else if (name == "Cube Bandage") 
+        possible = ["B", "R", "D"];
+    else if (name == "Slice Bandage") 
+        possible = ["B", "E", "D"];
+       
     if (type == "Middle Slices")
         possible = ["E", "M", "S"];
-    else if (type == "MS") 
-        possible = ["M", "S"];
-    else if (type == "Cube Bandage") 
-        possible = ["B", "R", "D"];
-    else if (type == "Slice Bandage") 
-        possible = ["B", "E", "D"];
     else if(type == "Double Turns")
         doubly = true;
+
+    console.log("possible is ", possible, "type is ", type, name)
 
     let s = shufflenum;
 
@@ -68,7 +71,7 @@ function shuffleCube(type, shufflenum, nowide = false) {
 function getShuffle(cubearr, shufflearr = false) {
     const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
         "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "2x3x4", "2x3x5" : "2x3x4",
-        "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2", "Snake Eyes": "MS", "Cube Bandage" : "Cube Bandage",
+        "1x5x5" : "3x3x2", "1x2x2" : "3x3x2", "3x3x2 Plus Cube" : "3x3x2", "Snake Eyes": "Snake Eyes", "Cube Bandage" : "Cube Bandage",
         "Slice Bandage" : "Slice Bandage"};
     const shufflenum = {"2x2x4" : 45, "2x3x4" : 45, "2x3x5" : 45, "3x3x5" : 45, "5x5" : 45, "3x3x4" : 30, "1x4x4" : 30, "4x4" : 30, "1x5x5" : 30,
         "Earth Cube" : 30, "4x4 Plus Cube" : 30
@@ -85,11 +88,12 @@ function getShuffle(cubearr, shufflearr = false) {
         }
     }
     console.log("AFTER", shufflea, shuffleb);
+    console.log("HERERE", cubearr);
     if (cubearr.length == 1 || shufflea == shuffleb) {
         if (shufflea == shuffleb) {
-            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18));
+            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18), false, cubearr[0]);
         }
-        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18);
+        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18, false, cubearr[0]);
     } else {
         return false;
     }
