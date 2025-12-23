@@ -12,6 +12,8 @@ function shuffleCube(type, shufflenum, nowide = false, name) {
     let doubly = false;
     if (type == "Last Layer") {
         return randomLL();
+    } else if (type == "Preserve Cross") {
+        return generatePreserveCrossScramble(true);
     }
 
     if (name == "Snake Eyes") 
@@ -68,6 +70,28 @@ function shuffleCube(type, shufflenum, nowide = false, name) {
     return total;
 }
 
+function generatePreserveCrossScramble(crossOnTop) {
+	let possible = ["R", "L", "B", "F", "R'", "L'", "B'", "F'"];
+	let copy = [...possible];
+	let total = "";
+	let possible_down = ["D", "D'", "D2"]
+	if (!crossOnTop) {
+		possible_down = ["U", "U'", "U2"]
+	}
+	for (let i = 0; i < 24; i++) {
+		if (possible.length === 0) {
+			possible = [...copy];
+		}
+		const index = Math.floor(Math.random() * possible.length);
+		const move = possible.splice(index, 1)[0];
+
+		total += move + " ";
+		total += possible_down[Math.floor(Math.random() * possible_down.length)] + " ";
+		total += Inverse(move) + " ";
+	}
+	return total;
+}
+
 function getShuffle(cubearr, shufflearr = false) {
     const typemap = {"2x2x3" : "3x3x2", "2x2x4" : "2x2x4", "3x3x2": "3x3x2", "3x3x4" : "3x3x2", 
         "3x3x5" : "2x2x4", "1x4x4" : "3x3x2", "1x2x3" : "3x3x2", "Plus Cube": "Middle Slices", "2x3x4" : "2x3x4", "2x3x5" : "2x3x4",
@@ -92,10 +116,10 @@ function getShuffle(cubearr, shufflearr = false) {
     console.log("HERERE", cubearr);
     if (cubearr.length == 1 || shufflea == shuffleb) {
         if (shufflea == shuffleb) {
-            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 18, shufflenum[cubearr[1]] ?? 18), 
+            return shuffleCube(shufflea, Math.max(shufflenum[cubearr[0]] ?? 20, shufflenum[cubearr[1]] ?? 20), 
                 !bigcubes.has(cubearr[0]) && !bigcubes.has(cubearr[1]), cubearr[0]);
         }
-        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 18, !bigcubes.has(cubearr[0]), cubearr[0]);
+        return shuffleCube(shufflea, shufflenum[cubearr[0]] ?? 20, !bigcubes.has(cubearr[0]), cubearr[0]);
     } else {
         return false;
     }
