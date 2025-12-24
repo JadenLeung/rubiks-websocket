@@ -150,6 +150,20 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Assumes that this is a 1v1, and 2 players have already joined
+    socket.on("swap-leader", (room) => {
+        room = String(room);
+        console.log("Swap?")
+        if (rooms.hasOwnProperty(room) && rooms[room].data.type != "group" && rooms[room].stage == "lobby" && rooms[room].userids.length == 2) {
+            console.log("Swap");
+            const currentLeader = rooms[room].data.leader;
+            const newLeader = rooms[room].userids.find(id => id !== currentLeader);
+            rooms[room].data.leader = newLeader;
+            rooms[room].userids.reverse();
+            io.to(room).emit("refresh_rooms", rooms[room], room);
+        }
+    });
+
     socket.on("start-match", (room) => {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage == "lobby") {
