@@ -42,7 +42,9 @@ app.use(express.static("public"));
 let rooms = {};
 
 io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    const { userId } = socket.handshake.auth;
+    socket.userId = userId;
+    console.log(`User connected: ${socket.id} with userId: ${userId}`);
 
     socket.on("restart-game", (room, data, cb) => {
         console.log(rooms, room);
@@ -85,7 +87,7 @@ io.on("connection", (socket) => {
             }
             data.leader = socket.id;
             rooms[i] = { userids: [socket.id], names: {}, data: data, stage: "lobby", round: -1, solved: {}, 
-                        allids: [socket.id], winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
+                        allids: {[userId]: [socket.id]}, winners: {}, solvedarr : [], progress: {}, times: {}, screenshots: {}};
             console.log(`${socket.id} is joining room ${i}. Rooms has info ${JSON.stringify(rooms)}`);
             name = getName(name, rooms[i].names);
             rooms[i].names[socket.id] = name;
@@ -128,7 +130,7 @@ io.on("connection", (socket) => {
 
     function joinRoom(room, name, failedcb) {
         room = String(room);
-        console.log("Attempting to join room, data is ", rooms[room])
+        console.log("Attempting to join room, data is ", rooms[room], " userId is ", socket.userId);
         let late_join = rooms[room] && rooms[room].data && rooms[room].data.type && rooms[room].data.type != "teamblind";
         if (rooms.hasOwnProperty(room)) {
             if (rooms[room].stage != "lobby" && !late_join) {
@@ -137,8 +139,37 @@ io.on("connection", (socket) => {
                 failedcb("Maximum capacity exceeded");
             } else if (!rooms[room].userids.includes(socket.id)) {
                 rooms[room].userids.push(socket.id);
-                if (!rooms[room].allids.includes(socket.id)) {
-                    rooms[room].allids.push(socket.id);
+                if (!rooms[room].allids.hasOwnProperty(socket.userId)) {
+                    rooms[room].allids[socket.userId] = [socket.id];
+                } else if (!rooms[room].allids[socket.userId].includes(socket.id)) {
+                    let replace_old = null;
+                    for (let id of rooms[room].allids[socket.userId]) {
+                        if (!rooms[room].userids.includes(id)) {
+                            replace_old = id;
+                            break;
+                        }
+                    }
+
+                    if (replace_old == null) {
+                        rooms[room].allids[socket.userId].push(socket.id);
+                    } else {
+                        // Recursively replace all occurrences of replace_old with socket.id in rooms[room]
+                        function recursiveReplace(obj) {
+                            if (Array.isArray(obj)) {
+                                return obj.map(item => item === replace_old ? socket.id : recursiveReplace(item));
+                            } else if (obj !== null && typeof obj === 'object') {
+                                const newObj = {};
+                                for (const key in obj) {
+                                    const newKey = key === replace_old ? socket.id : key;
+                                    const value = obj[key];
+                                    newObj[newKey] = value === replace_old ? socket.id : recursiveReplace(value);
+                                }
+                                return newObj;
+                            }
+                            return obj === replace_old ? socket.id : obj;
+                        }
+                        rooms[room] = recursiveReplace(rooms[room]);
+                    }
                 }
                 name = getName(name, rooms[room].names)
                 rooms[room].names[socket.id] = name;
