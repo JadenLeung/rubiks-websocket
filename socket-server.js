@@ -151,6 +151,12 @@ io.on("connection", (socket) => {
                     io.to(socket.id).emit("joined_late", rooms[room], room);
                 }
                 io.to(room).emit("joined_room", room, socket.id, name, rooms[room].stage);
+                if (rooms[room].stage == "results") {
+                    if (!rooms[room].times[socket.id]) {
+                        rooms[room].times[socket.id] = "DNF";
+                    }
+                    io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
+                }
                 console.log(`${socket.id} joined room ${room}. Updated Data: ${JSON.stringify(rooms)}`);
                 return true;
             }
@@ -393,14 +399,6 @@ function sendNextScreenshot(op) {
 
     function removePlayerFromRoom(player, room) {
         io.to(room).emit("left_room", room, socket.id, rooms[room].names);
-        if (rooms[room].solved && rooms[room].solved[player]) {
-            delete rooms[room].solved[player];
-            console.log("Deleting player from solved", rooms[room].solved)
-        }
-        if (rooms[room].times && rooms[room].times[player]) {
-            rooms[room].times[player] = "DNF";
-            console.log("Setting player to DNF")
-        }
         rooms[room].userids = rooms[room].userids.filter(x => x !== player);
         if (rooms[room].userids.length == 0) {
             delete rooms[room];
