@@ -152,7 +152,7 @@ io.on("connection", (socket) => {
                 }
                 io.to(room).emit("joined_room", room, socket.id, name, rooms[room].stage);
                 if (rooms[room].stage == "results") {
-                    if (!rooms[room].times[socket.id]) {
+                    if (!rooms[room].solved[socket.id]) {
                         rooms[room].times[socket.id] = "DNF";
                     }
                     io.to(room).emit("all-solved", rooms[room], rooms[room].winners);
@@ -307,7 +307,7 @@ function sendNextScreenshot(op) {
     function updateTimes(room) {
         room = String(room);
         if (rooms.hasOwnProperty(room) && rooms[room].stage != "lobby") {
-            if (Object.keys(rooms[room].solved).length == rooms[room].userids.length) {
+            if (rooms[room].userids.every(id => rooms[room].solved.hasOwnProperty(id))) {
                 let winningtime = "DNF";
                 for (let id in rooms[room].solved) {
                     const thetime = rooms[room].solved[id];
