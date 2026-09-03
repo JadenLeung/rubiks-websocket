@@ -25,6 +25,7 @@ const io = new Server(dev ? server : httpsServer, {
         origin: "*",
         methods: ["GET", "POST"]
     },
+    perMessageDeflate: false
   // transports: ["polling"] // Forces long polling instead of WebSockets
 });
 
@@ -325,13 +326,13 @@ function sendNextScreenshot(op) {
     io.to(op).emit("update-screenshot", screenshot);
 
     // Optional: delay to prevent floods
-    setImmediate(() => {
+    setTimeout(() => {
         if (latestScreenshots[op]) {
             sendNextScreenshot(op);
         } else {
             sending[op] = false;
         }
-    });
+    }, 66);
 }
 
 
