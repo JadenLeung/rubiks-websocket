@@ -1,26 +1,12 @@
 const express = require("express");
 const http = require("http");
-const https = require('https');  // Add this line
 const { Server } = require("socket.io");
 const cors = require("cors");
-const fs = require("fs");
 const app = express();
 const server = http.createServer(app);
 const { shuffleCube, getShuffle, randomLL } = require("./shuffle.js");
 
-dev = true;
-
-// HTTPS Configuration
-if (!dev) {
-    var options = {
-        key: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/privkey.pem"),
-        cert: fs.readFileSync("/etc/letsencrypt/live/api.virtual-cube.net/fullchain.pem")
-    };
-    var httpsServer = https.createServer(options, app);
-}
-
-// Create HTTPS server
-const io = new Server(dev ? server : httpsServer, {
+const io = new Server(server, {
     cors: { 
         origin: "*",
         methods: ["GET", "POST"]
@@ -463,11 +449,4 @@ function sendNextScreenshot(op) {
 
 const PORT = process.env.PORT || 3003;
 
-if (!dev) {
-    // Start HTTPS server (which includes Socket.IO)
-    httpsServer.listen(3003, () => {
-        console.log('HTTPS server with Socket.IO running on port 3003');
-    });
-} else {
-    server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-}
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
