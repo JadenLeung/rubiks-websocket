@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const { shuffleCube, getShuffle, randomLL } = require("./shuffle.js");
 
-dev = false;
+dev = true;
 
 // HTTPS Configuration
 if (!dev) {
